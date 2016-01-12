@@ -1,7 +1,7 @@
 import time
 import sys
 import numpy as np
-from hardcodedClassifier import HcClassifier
+from hardcodedClassifier import HcClassifier as importedClassifier
 
 def main(argv):
     # Import and setup the Iris dataset
@@ -31,9 +31,9 @@ def main(argv):
 
 
     # Train the classifier and make predictions
-    hcc = HcClassifier()
-    hcc.train(trainData, trainTargets)
-    predictionList = hcc.predict(testData)
+    classifier = importedClassifier()
+    classifier.train(trainData, trainTargets)
+    predictionList = classifier.predict(testData)
 
 
     # Determine the accuracy of the classifier
