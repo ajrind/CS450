@@ -12,8 +12,10 @@ def main(argv):
 
 
     # Shuffle the dataset
-    np.random.seed(int(time.time()))
+    seed = int(time.time())
+    np.random.seed(seed)
     np.random.shuffle(irisData)
+    np.random.seed(seed)            # reseed to make targets shuffle in the same order as data
     np.random.shuffle(irisTargets)
 
 
