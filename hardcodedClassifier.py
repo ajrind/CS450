@@ -1,11 +1,28 @@
 class HcClassifier:
 
     def __init__(self):
-        self.dataSet = ""
+        self.dataList = ""
 
-    def train(self, dataSet, targetSet):
-        self.dataSet = dataSet
+    """
+    Fit: (alias for train)
+    """
+    def fit(self, dataList, targetList):
+        self.train(dataList, targetList)
 
-    def predict(self, instanceSet):
-        predictions = [0] * len(instanceSet)
-        return predictions
+    """
+    Train:
+        Inputs: dataList - the data
+                targetList - the corresponding targets for the data columns
+        Return: None
+    """
+    def train(self, dataList, targetList):
+        self.dataList = dataList
+
+    """
+    Predict:
+        Inputs: instanceList - the data columns for which targets will be predicted
+        Return: predictionList - the predicted targets for the data in instanceList
+    """
+    def predict(self, instanceList):
+        predictionList = [0] * len(instanceList)
+        return predictionList
