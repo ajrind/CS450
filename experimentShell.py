@@ -1,4 +1,3 @@
-import time
 import sys
 import csv
 import numpy as np
@@ -6,6 +5,7 @@ from sklearn import preprocessing
 from sklearn.cross_validation import train_test_split
 from hardcodedClassifier import HcClassifier as hcClass
 from knnClassifier import KnnClassifier as knnClass
+from neuralNetworkClassifier import NeuralNetworkClassifier as nnClass
 from sklearn.neighbors import KNeighborsClassifier
 
 """The experiment shell"""
@@ -19,17 +19,22 @@ def main(argv):
     readFile(filename, theData, theTargets)
 
     # Preprocess the data
-    possibleTargets = getPossibleTargets(filename, theData, theTargets)
-    preprocessData(filename, theData, theTargets, possibleTargets)
+    preprocessData(filename, theData, theTargets)
 
     # Split the dataset into two sets: a training set and a testing set
     testScale = 0.33
     trainData, testData, trainTargets, testTargets = train_test_split(theData, theTargets, test_size=testScale)
 
     # Create and apply the scaler
-    scaler = preprocessing.StandardScaler().fit(trainData)
-    trainData = scaler.transform(trainData)
-    testData  = scaler.transform(testData)
+    if shouldScaleData():
+        scaler = preprocessing.StandardScaler().fit(trainData)
+        trainData = scaler.transform(trainData)
+        testData  = scaler.transform(testData)
+        print("The data has been scaled.")
+    else:
+        print("The data will not be scaled.")
+
+    print ("Original List: %d", len(testData[0]) - 1)
 
     # Determine which classifier to use
     userClassChoice = int(getUserClassChoice())
@@ -49,10 +54,28 @@ def main(argv):
     elif userClassChoice == 3:
         print "How many neighbors should be used? (Test data will contain %d rows)" % len(testData)
         k = int(raw_input())
-        if int(k) > len(testData):
+        if int(k) > len(testData) or int(k) < 1:
             print "Invalid input! Defaulting to k = 3..."
             k = 3
         classifier = KNeighborsClassifier(n_neighbors=k)
+    # 4. my Decision Tree (in progress)
+    elif userClassChoice == 4:
+        print("This classifier is not yet implemented. Exiting...")
+        exit()
+    # 5. sklearn Decision Tree (in progress)
+    elif userClassChoice == 5:
+        print("This classifier is not yet implemented. Exiting...")
+        exit()
+    # 6. my Neural Network
+    elif userClassChoice == 6:
+        print "How many nodes should each layer contain?"
+        numNodes = int(raw_input())
+        if int(numNodes) <= 0:
+            print "Invalid input! Defaulting to 3 nodes..."
+            numNodes = 3
+        threshold = 0
+        print("! testData[0]=",testData[0])
+        classifier = nnClass(numNodes, len(testData[0]), threshold)
     else:
         print("%s is not a valid choice. Exiting...", userClassChoice)
         exit()
@@ -60,7 +83,6 @@ def main(argv):
 
     # Train the classifier and make predictions
     classifier.fit(trainData, trainTargets)
-    print ("Length of testData is " + str(len(testData)))
     predictionList = classifier.predict(testData)
 
     # Determine the accuracy of the classifier
@@ -78,7 +100,7 @@ def getUserDataChoice():
     print("Please enter the number of the data set you wish to use:")
     print("1 = Iris")
     print("2 = Car Evaluation")
-#   print("3 = Custom Data Set")
+    print("3 = Pima Indians Diabetes")
     choice = int(raw_input())
 
     filename = ""
@@ -86,6 +108,8 @@ def getUserDataChoice():
         filename = "iris.data"
     elif choice == 2:
         filename = "car.data"
+    elif choice == 3:
+        filename = "pima-indians-diabetes.data"
     else:
         print("%s is not a valid choice. Exiting...", choice)
         exit()
@@ -99,6 +123,9 @@ def getUserClassChoice():
     print("1 = Hardcoded Classifier")
     print("2 = k-Nearest Neighbors")
     print("3 = k-Nearest Neighbors (from sklearn)")
+    print("4 = Decision Tree [NOT YET IMPLEMENTED]")
+    print("5 = Decision Tree (from sklearn) [NOT YET IMPLEMENTED]")
+    print("6 = Neural Network")
     choice = raw_input()
     return choice
 
@@ -113,6 +140,15 @@ def readFile(filename, theData, theTargets):
             theTargets.append(row[len(row) - 1])
     return
 
+"""Prompts whether or not the user desires to preprocess the data (apply a scalar)"""
+def shouldScaleData():
+    print("Scale the Data? (y/n)")
+    input = raw_input()
+    if input == 'y':
+        return True
+    else:
+        return False
+
 """Returns a list of all the possible targets in the data"""
 def getPossibleTargets(filename, theData, theTargets):
     # Create the list of all different targets
@@ -124,7 +160,9 @@ def getPossibleTargets(filename, theData, theTargets):
 
 
 """Converts strings to numbers in the data"""
-def preprocessData(filename, theData, theTargets, possibleTargets):
+def preprocessData(filename, theData, theTargets):
+    possibleTargets = getPossibleTargets(filename, theData, theTargets)
+
     # Convert the targets into a numeric form
     for i in range(len(theTargets)):
         theTargets[i] = possibleTargets.index(theTargets[i])
@@ -134,61 +172,61 @@ def preprocessData(filename, theData, theTargets, possibleTargets):
         # Column 1: vhigh, high, med, low.
         for i in range(len(theData)):
             if theData[i][0] == 'low':
-                theData[i][0] = 0
-            if theData[i][0] == 'med':
                 theData[i][0] = 1
-            if theData[i][0] == 'high':
+            if theData[i][0] == 'med':
                 theData[i][0] = 2
-            if theData[i][0] == 'vhigh':
+            if theData[i][0] == 'high':
                 theData[i][0] = 3
+            if theData[i][0] == 'vhigh':
+                theData[i][0] = 4
 
         # Column 2: vhigh, high, med, low.
         for i in range(len(theData)):
             if theData[i][1] == 'low':
-                theData[i][1] = 0
-            if theData[i][1] == 'med':
                 theData[i][1] = 1
-            if theData[i][1] == 'high':
+            if theData[i][1] == 'med':
                 theData[i][1] = 2
-            if theData[i][1] == 'vhigh':
+            if theData[i][1] == 'high':
                 theData[i][1] = 3
+            if theData[i][1] == 'vhigh':
+                theData[i][1] = 4
 
         # Column 3: 2, 3, 4, 5more.
         for i in range(len(theData)):
             if theData[i][2] == '2':
-                theData[i][2] = 0
-            if theData[i][2] == '3':
                 theData[i][2] = 1
-            if theData[i][2] == '4':
+            if theData[i][2] == '3':
                 theData[i][2] = 2
-            if theData[i][2] == '5more':
+            if theData[i][2] == '4':
                 theData[i][2] = 3
+            if theData[i][2] == '5more':
+                theData[i][2] = 4
         # Column 4: 2, 4, more.
         for i in range(len(theData)):
             if theData[i][3] == '2':
-                theData[i][3] = 0
-            if theData[i][3] == '4':
                 theData[i][3] = 1
-            if theData[i][3] == 'more':
+            if theData[i][3] == '4':
                 theData[i][3] = 2
+            if theData[i][3] == 'more':
+                theData[i][3] = 3
 
         # Column 5: small, med, big.
         for i in range(len(theData)):
             if theData[i][4] == 'small':
-                theData[i][4] = 0
-            if theData[i][4] == 'med':
                 theData[i][4] = 1
-            if theData[i][4] == 'big':
+            if theData[i][4] == 'med':
                 theData[i][4] = 2
+            if theData[i][4] == 'big':
+                theData[i][4] = 3
 
         # Column 6: low, med, high.
         for i in range(len(theData)):
             if theData[i][5] == 'low':
-                theData[i][5] = 0
-            if theData[i][5] == 'med':
                 theData[i][5] = 1
-            if theData[i][5] == 'high':
+            if theData[i][5] == 'med':
                 theData[i][5] = 2
+            if theData[i][5] == 'high':
+                theData[i][5] = 3
     return
 
 
